@@ -1,0 +1,37 @@
+---
+title: "STAT 380 Project"
+output: html_notebook
+---
+
+# COMMIT AND PUSH EVERYTHING YOU DO!!! TEXT EACH OTHER AFTER EACH COMMIT, SO WE ARE WORKING ON THE MOST UP TO DATE FILE
+
+
+# Libraries 
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+# Dataset
+```{r}
+SpotifyDataset <- read.csv(file = "SpotifyDataset.csv", stringsAsFactors = FALSE)
+
+# Edit this to the columns we want to use
+SpotifyDataset <- SpotifyDataset%>%
+  select(-Track.URI, -Artist.URI.s. , -Album.URI, -Album.Artist.URI.s. , -Album.Image.URL , -Track.Preview.URL , -ISRC, -Added.By, -Added.At, -Album.Genres, -Copyrights)
+
+SpotifyDataset
+```
+
+# General Groupwork
+add any other general ideas and code here
+
+# Taryn
+
+# Kunal
+
+# Krish 
+
+# Maggie
+
+# Victoria
