@@ -3,6 +3,40 @@ title: "STAT 380 Project"
 output: html_notebook
 ---
 
-testvhjer
 
-jgkrejgknkrjssssssssss
+```{r}
+SpotifyDataset <- SpotifyDataset
+
+ls(SpotifyDataset)
+library(dplyr)
+```
+
+
+```{r}
+SpotifyDataset <-
+SpotifyDataset %>%
+  dplyr::select (-Track.URI, -Artist.URI.s. , -Album.URI, -Album.Artist.URI.s. , -Album.Image.URL , -Track.Preview.URL , -ISRC, -Added.By, -Added.At, -Album.Genres, -Copyrights)
+
+```
+
+
+
+```{r}
+ggplot(df, aes(x = 1, y = percent, fill = )) +
+  geom_col() +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = paste(percent, "%")),
+            position = position_stack(vjust = 0.5),
+            size = 8) +
+  theme_void(base_size = 20) +
+  scale_fill_brewer(name = NULL, palette = "Pastel2")
+```
+
+
+
+
+
+
+
+
+
