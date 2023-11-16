@@ -22,6 +22,12 @@ SpotifyDataset <- SpotifyDataset%>%
 SpotifyDataset
 ```
 
+```{r}
+SpotifyDataset <-
+  SpotifyDataset %>%
+  select(Track.Name, Artist.Name.s., Popularity, Artist.Genres, Danceability, Energy, Key, Loudness, Mode, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+```
+
 # General Groupwork
 add any other general ideas and code here
 
