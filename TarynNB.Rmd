@@ -1,9 +1,7 @@
 ---
-title: "STAT 380 Project"
+title: "STAT 380 Taryn"
 output: html_notebook
 ---
-
-# COMMIT/PUSH UPDATES TO YOUR PERSONAL NBs
 
 # Libraries 
 ```{r}
@@ -21,9 +19,3 @@ SpotifyDataset <- SpotifyDataset%>%
 
 SpotifyDataset
 ```
-
-# General Groupwork
-add any other general ideas and code here
-
-# Indivual Work
-go to your individual notebooks and we can update this notebook when we are together :) 
