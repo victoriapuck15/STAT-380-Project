@@ -3,7 +3,7 @@ title: "STAT 380 Project"
 output: html_notebook
 ---
 
-# COMMIT/PUSH UPDATES TO YOUR PERSONAL NBs
+# COMMIT/PUSH UPDATES TO YOUR PERSONAL NBs. ALSO FETCH ORIGIN BEFORE YOU CODE
 
 # Libraries 
 ```{r}
