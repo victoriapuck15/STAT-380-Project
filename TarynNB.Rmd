@@ -1,0 +1,41 @@
+---
+title: "STAT 380 Taryn"
+output: html_notebook
+---
+
+# Libraries 
+```{r}
+library(ggplot2)
+library(dplyr)
+
+library(ggplot2)
+library(dplyr)
+library(babynames)
+library(tidyverse)
+library(mdsr)
+library(Lahman)
+library(nycflights13)
+library(mosaicData)
+library(lubridate)
+library(purrr)
+library(factoextra)
+library(cluster)
+```
+
+# Dataset
+```{r}
+SpotifyDataset <- read.csv(file = "SpotifyDataset.csv", stringsAsFactors = FALSE)
+
+# Edit this to the columns we want to use
+SpotifyDataset <- SpotifyDataset%>%
+  select(Track.Name, Artist.Name.s., Popularity, Artist.Genres, Danceability, Energy, Key, Loudness, Mode, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+
+SpotifyDataset2 <- SpotifyDataset%>%
+  select(Track.Name, Popularity, Artist.Genres, Danceability, Energy, Key, Loudness, Mode, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+```
+
+# Data Visualization
+```{r}
+
+```
+
