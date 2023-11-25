@@ -7,19 +7,7 @@ output: html_notebook
 ```{r}
 library(ggplot2)
 library(dplyr)
-
-library(ggplot2)
-library(dplyr)
-library(babynames)
 library(tidyverse)
-library(mdsr)
-library(Lahman)
-library(nycflights13)
-library(mosaicData)
-library(lubridate)
-library(purrr)
-library(factoextra)
-library(cluster)
 ```
 
 # Dataset
@@ -30,12 +18,101 @@ SpotifyDataset <- read.csv(file = "SpotifyDataset.csv", stringsAsFactors = FALSE
 SpotifyDataset <- SpotifyDataset%>%
   select(Track.Name, Artist.Name.s., Popularity, Artist.Genres, Danceability, Energy, Key, Loudness, Mode, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
 
-SpotifyDataset2 <- SpotifyDataset%>%
-  select(Track.Name, Popularity, Artist.Genres, Danceability, Energy, Key, Loudness, Mode, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+SDNums <- SpotifyDataset%>%
+  select(Popularity,Danceability, Energy, Key, Loudness, Mode, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+
 ```
 
-# Data Visualization
-```{r}
 
+# Summary Statistics 
+```{r}
+stats <- function(data, names) {
+  variableData <- data[, names, drop = FALSE]
+  summary(variableData)
+}
+
+variables <- colnames(SDNums)
+stats(SDNums, variables)
+```
+
+
+# Boxplots 
+```{r}
+boxplots <- function(data, names) {
+  for (variable in names) {
+    variableData <- data[, variable, drop = FALSE]
+    
+    # Create a boxplot using ggplot2
+    print(ggplot(
+      data = variableData,
+      mapping = aes(y = !!as.name(variable))) +
+        geom_boxplot() +
+        labs(title = paste("Boxplot of", variable),
+             x = "", y = variable) 
+    )
+  }
+}
+
+boxplots(SDNums, variables)
+```
+
+# Histograms
+```{r}
+histograms <- function(data, names) {
+  for (variable in names) {
+    variableData <- data[, variable, drop = FALSE]
+    
+    # Create a boxplot using ggplot2
+    print(ggplot(
+      data = variableData,
+      mapping = aes(x = !!as.name(variable))) +
+        geom_histogram(color = "black", fill = "salmon") +
+        labs(title = paste("Boxplot of", variable),
+             x = variable, y = "Frequency") 
+    )
+  }
+}
+
+histograms(SDNums, variables)
+```
+
+# Scatterplot
+```{r}
+scatter <- function(data, names) {
+  pop <- colnames(data)[sapply(data, is.numeric)][1]  
+  for (variable in names) {
+    variableData <- data[, c(pop, variable), drop = FALSE]
+    
+    print(ggplot(
+      data = variableData,
+      mapping = aes(x = !!as.name(pop), y = !!as.name(variable))) +
+        geom_point() +
+        labs(title = paste("Scatter Plot of", variable),
+             x = pop, y = variable) 
+    )
+  }
+}
+
+scatter(SDNums, variables)
+
+```
+
+
+# Pairs/Cor
+had to split it up into 3 because it was too small. all have population though
+```{r}
+nums1 <- SpotifyDataset%>%
+  select(Popularity,Danceability, Energy, Key, Loudness)
+
+nums2 <- SpotifyDataset%>%
+  select(Popularity,  Mode, Speechiness, Acousticness, Instrumentalness, )
+
+nums3 <- SpotifyDataset%>%
+  select(Popularity, Liveness, Valence, Tempo)
+
+#pairs(SDNums)
+pairs(nums1)
+pairs(nums2)
+pairs(nums3)
 ```
 
