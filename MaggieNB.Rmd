@@ -7,6 +7,10 @@ Libraries
 ```{r}
 library(ggplot2)
 library(dplyr)
+library(tidyverse)
+library(mdsr)
+library(mvtnorm)
+library(factoextra)
 ```
 
 # Dataset
@@ -19,3 +23,56 @@ SpotifyDataset <- SpotifyDataset%>%
 
 SpotifyDataset
 ```
+
+```{r}
+# create new dataset with only numeric variables for pca
+NumSpotifyDataset <-
+  SpotifyDataset %>%
+  select(-Track.Name, -Artist.Name.s., -Album.Name, -Album.Artist.Name.s., -Album.Release.Date, -Disc.Number, -Track.Number, -Track.Duration..ms., -Explicit, -Artist.Genres, -Time.Signature, -Label)
+
+# remove cases with missing data
+NumSpotifyDataset <- na.omit(NumSpotifyDataset)
+
+NumSpotifyDataset
+```
+
+```{r}
+# perform pca, being sure to scale the variables
+princomp <-
+NumSpotifyDataset %>%
+  prcomp(scale = TRUE)
+princomp
+```
+
+```{r}
+# eigenvalue, PVE and cumulative PVE for each PC
+pve <- get_eig(princomp)
+pve
+
+# scree plot to find the "elbow"
+fviz_screeplot(princomp, main = "Scree Plot for SpotifyDataset")
+
+# scree plot to find how many components must be included for at least 80% of variance to be explained
+pve %>%
+  ggplot(aes(x = 1:12, y = cumulative.variance.percent)) + 
+  geom_line() + 
+  geom_point() +
+  geom_hline(yintercept = 80) +
+  xlab("Dimension") +
+  ylab("Cumulative Variance Explained") +
+  ggtitle("Cumulative Variance Explained With Each Principle Component in SpotifyDataset")
+```
+
+```{r}
+# create a matrix using the first 7 components
+score_mat <- princomp$x
+sel_pcs <- 1:7
+score_mat2 <- score_mat[,sel_pcs]
+score_mat2
+```
+
+
+
+
+
+
