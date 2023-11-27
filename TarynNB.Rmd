@@ -27,14 +27,17 @@ SDNums <- SpotifyDataset%>%
 # Summary Statistics 
 ```{r}
 stats <- function(data, names) {
-  variableData <- data[, names, drop = FALSE]
-  summary(variableData)
+  for (variable in names) {
+    variableData <- data[, variable, drop = FALSE]
+    print(
+      summary(variableData)
+    )
+  }
 }
 
 variables <- colnames(SDNums)
 stats(SDNums, variables)
 ```
-
 
 # Boxplots 
 ```{r}
@@ -62,7 +65,6 @@ histograms <- function(data, names) {
   for (variable in names) {
     variableData <- data[, variable, drop = FALSE]
     
-    # Create a boxplot using ggplot2
     print(ggplot(
       data = variableData,
       mapping = aes(x = !!as.name(variable))) +
@@ -75,20 +77,52 @@ histograms <- function(data, names) {
 
 histograms(SDNums, variables)
 ```
+There are many songs with a popularity of 0, why is that? Key is not symmetrical. 
+
+
+
+## Observations for individual factors
+*Popularity:* There are a lot of songs with a popularity of 0, not sure why that is, but it makes it skewed. Without that, it would be fairly symmetrical.   
+*Danceability:* Pretty symmetrical with a center around .60-.61    
+*Energy:* Fairly symmetrical, slightly skewed left with center around .68-.71.
+*Key:* Numbers wise, the mean and median are very similar 5.168 and 5, respectively. When looking at the graph, it does not have a distinct shape, with the a key of 3 being the least chosen and 0 being the most.   
+```{r}
+SDNums%>%
+  group_by(Key)%>%
+  summarise(count = n())%>%
+  arrange(desc(count))
+```
+
+*Loudness:* Pretty symmetrical with center around -.72 - -.65.    
+*Mode:* Can not really havea  shape, there are more songs with mode 1 than mode 0. 
+```{r}
+SDNums%>%
+  group_by(Mode)%>%
+  summarise(count = n())
+```
+
+*Speechiness:* Heavily skewed right. With mean of 0.06 and median of 0.04.   
+*Acousticness:* Heavily skewed right. With mean of .21 and median of .096.   
+*Instrumentalness:* Heavily skewed right. With mean of 0.029 and median of 0.0000057.   
+*Liveness:*Heavily skewed right. With mean of .18 and median of .12. 
+*Valence:* Numbers wise it is symmetrical but it is more box/square shaped with center around .58.   
+*Tempo:* Fairly symmetrical with center around 120-121.  
+
 
 # Scatterplot
+Factors on the y axis, popularity on the x axis. 
 ```{r}
 scatter <- function(data, names) {
   pop <- colnames(data)[sapply(data, is.numeric)][1]  
   for (variable in names) {
-    variableData <- data[, c(pop, variable), drop = FALSE]
+    variableData <- data[, c(variable, pop), drop = FALSE]
     
     print(ggplot(
       data = variableData,
-      mapping = aes(x = !!as.name(pop), y = !!as.name(variable))) +
+      mapping = aes(x = !!as.name(variable), y = !!as.name(pop))) +
         geom_point() +
         labs(title = paste("Scatter Plot of", variable),
-             x = pop, y = variable) 
+             x = variable, y = pop) 
     )
   }
 }
@@ -96,10 +130,10 @@ scatter <- function(data, names) {
 scatter(SDNums, variables)
 
 ```
-
+No clear patterns or correlation between popularity and a variable. 
 
 # Pairs/Cor
-had to split it up into 3 because it was too small. all have population though
+Had to split it up into 3 because it was too small. All have population though
 ```{r}
 nums1 <- SpotifyDataset%>%
   select(Popularity,Danceability, Energy, Key, Loudness)
@@ -115,4 +149,4 @@ pairs(nums1)
 pairs(nums2)
 pairs(nums3)
 ```
-
+Popularity does not really have a pattern with any variable. The only variables with a slight linear pattern are energy and loudness. Could be more but they are split up. 
