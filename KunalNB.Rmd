@@ -7,6 +7,8 @@ output: html_notebook
 ```{r}
 library(ggplot2)
 library(dplyr)
+library(boot)       # bootstrap
+library(car) 
 ```
 
 # Dataset
@@ -19,3 +21,77 @@ SpotifyDataset <- SpotifyDataset%>%
 
 SpotifyDataset
 ```
+
+
+
+
+
+
+
+
+
+```{r}
+
+Spotify_boot <- SpotifyDataset %>% 
+
+  slice_sample(n = 1000, replace = FALSE) 
+
+  
+
+summary(Spotify_boot)
+
+``` 
+
+
+```{r}
+ggplot(Spotify_boot, aes(x=Valence, y=Popularity)) + 
+    geom_point()
+```
+
+
+
+
+
+
+
+
+
+ 
+```{r}
+library(mosaic)
+fav_stats(Spotify_boot$Popularity)
+```
+
+
+
+```{r}
+
+
+mean.function <- function(x, index) {
+  d <- x[index]     # This first line will go in ever bootstrap function you make.
+  return(mean(d))  
+}
+DanceBootDist <- boot(data = SpotifyDataset$Danceability, statistic = mean.function, R=10000)
+
+DanceBootDist.graph <- data.frame(xbar=DanceBootDist$t)
+ggplot(DanceBootDist.graph, aes(x=xbar)) +
+  geom_histogram() + 
+  ggtitle('Estimated Sampling distribution of Dancebility' )
+
+```
+
+
+
+
+
+```{r}
+ValenceBootDist <- boot(data = SpotifyDataset$Valence, statistic = mean.function, R=10000)
+
+ValenceBootDist.graph <- data.frame(xbar=ValenceBootDist$t)
+ggplot(ValenceBootDist.graph, aes(x=xbar)) +
+  geom_histogram() + 
+  ggtitle('Estimated Sampling distribution of Valence' )
+```
+We can conclude that majority of the music on Spotify envokes positive feelings 
+
+
