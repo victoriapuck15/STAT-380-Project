@@ -8,8 +8,57 @@ output: html_notebook
 library(ggplot2)
 library(dplyr)
 library(boot)       # bootstrap
-library(car) 
+library(car)
+library(ISLR2)
+library(caret)
+library(glmnet)
+library(leaps)
 ```
+
+
+Dancebility Regression:
+
+
+```{r}
+mlr_model1 <- lm(Popularity ~ Mode + Loudness + Speechiness + Instrumentalness + Acousticness + Time.Signature + Tempo, data = SpotifyDataset)
+
+
+
+mlr_2 <- lm(Popularity ~ Energy + Loudness + Liveness + Valence, data = SpotifyDataset)
+
+
+summary(mlr_model1)
+
+
+
+
+model_residuals1 = mlr_model$residuals
+
+# Plot the result
+hist(model_residuals1)
+
+qqnorm(model_residuals1)
+# Plot the Q-Q line
+qqline(model_residuals1)
+
+
+summary(mlr_2)
+
+model_residuals2 = mlr_2$residuals
+
+# Plot the result
+hist(model_residuals2)
+
+qqnorm(model_residuals2)
+# Plot the Q-Q line
+qqline(model_residuals2)
+
+
+
+anova(mlr_2,mlr_model1)
+
+```
+
 
 # Dataset
 ```{r}
@@ -21,6 +70,58 @@ SpotifyDataset <- SpotifyDataset%>%
 
 SpotifyDataset
 ```
+
+
+```{r}
+SpotifyRegfit.fwd = regsubsets(Popularity ~. , data=SpotifyDataset, nvmax=10, method ="exhaustive")
+summary(SpotifyRegfit.fwd)
+
+
+SpotifyReg.summary <- summary(SpotifyRegfit.fwd) #get the summary
+
+
+
+#adjr2 plot
+plot(SpotifyReg.summary$adjr2 ,xlab="Number of Variables ", ylab="Adjusted RSq",type="l")
+SpotifyMax_adjr2 <- which.max(SpotifyReg.summary$adjr2)
+points(SpotifyMax_adjr2,SpotifyReg.summary$adjr2[Spotifymax_adjr2], col="red",cex=2,pch=20)
+
+# AIC criterion (Cp) to minimize
+plot(SpotifyReg.summary$cp ,xlab="Number of Variables ",ylab="Cp", type='l')
+SpotifyMin_cp <- which.min(SpotifyReg.summary$cp )
+points(SpotifyMin_cp, SpotifyReg.summary$cp[SpotifyMin_cp],col="red",cex=2,pch=20)
+
+# BIC criterion to minimize
+plot(SpotifyReg.summary$bic ,xlab="Number of Variables ",ylab="BIC",type='l')
+SpotifyMin_bic <- which.min(SpotifyReg.summary$bic)
+points(SpotifyMin_bic,SpotifyReg.summary$bic[SpotifyMin_bic],col="red",cex=2,pch=20)
+```
+
+
+
+```{r}
+
+
+x_var <- SpotifyDataset %>% select(-Popularity) %>% as.matrix() %>% na.omit
+# getting the independent variable
+y_var <- SpotifyDataset[,"Popularity"] 
+
+
+lasso <- glmnet(x_var, y_var, alpha=1)
+summary(lasso)
+
+
+min_lasso <- glmnet(x_var, y_var, alpha=1, lambda = lasso$lambda.min)
+
+predictions.lasso <- min_lasso %>% predict(x_var) %>% as.vector()
+# Model performance metrics
+data.frame(
+  MSE = (RMSE(predictions.lasso, y_var))^2,
+  Rsquare = R2(predictions.lasso, y_var)
+)
+
+```
+
 
 
 
@@ -93,5 +194,27 @@ ggplot(ValenceBootDist.graph, aes(x=xbar)) +
   ggtitle('Estimated Sampling distribution of Valence' )
 ```
 We can conclude that majority of the music on Spotify envokes positive feelings 
+
+
+
+
+By genre:
+
+```{r}
+by_genre <- function(data, genres, pop) {
+  unique <- unique(data[[genres]])
+  
+  for (genre in unique) {
+    genre_data <- data[data[[genres]] == genre, ]
+    
+  }
+}
+
+
+Spotify.genre <- by_genre(SpotifyDataset, "Genre", "Popularity")
+
+Spotify.genre
+```
+
 
 
