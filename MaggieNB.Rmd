@@ -21,6 +21,9 @@ SpotifyDataset <- read.csv(file = "SpotifyDataset.csv", stringsAsFactors = FALSE
 SpotifyDataset <- SpotifyDataset%>%
   select(-Track.URI, -Artist.URI.s. , -Album.URI, -Album.Artist.URI.s. , -Album.Image.URL , -Track.Preview.URL , -ISRC, -Added.By, -Added.At, -Album.Genres, -Copyrights)
 
+# remove cases with missing data
+SpotifyDataset <- na.omit(SpotifyDataset)
+
 SpotifyDataset
 ```
 
@@ -28,10 +31,7 @@ SpotifyDataset
 # create new dataset with only numeric variables for pca
 NumSpotifyDataset <-
   SpotifyDataset %>%
-  select(-Track.Name, -Artist.Name.s., -Album.Name, -Album.Artist.Name.s., -Album.Release.Date, -Disc.Number, -Track.Number, -Track.Duration..ms., -Explicit, -Artist.Genres, -Time.Signature, -Label)
-
-# remove cases with missing data
-NumSpotifyDataset <- na.omit(NumSpotifyDataset)
+  select(-Popularity, -Track.Name, -Artist.Name.s., -Album.Name, -Album.Artist.Name.s., -Album.Release.Date, -Disc.Number, -Track.Number, -Track.Duration..ms., -Explicit, -Artist.Genres, -Time.Signature, -Label)
 
 NumSpotifyDataset
 ```
@@ -54,7 +54,7 @@ fviz_screeplot(princomp, main = "Scree Plot for SpotifyDataset")
 
 # scree plot to find how many components must be included for at least 80% of variance to be explained
 pve %>%
-  ggplot(aes(x = 1:12, y = cumulative.variance.percent)) + 
+  ggplot(aes(x = 1:11, y = cumulative.variance.percent)) + 
   geom_line() + 
   geom_point() +
   geom_hline(yintercept = 80) +
@@ -71,8 +71,22 @@ score_mat2 <- score_mat[,sel_pcs]
 score_mat2
 ```
 
+```{r}
+#dataframe with each song's popularity score and components
+PCASpotify <- data.frame(SpotifyDataset$Popularity, score_mat2)
+```
 
-
+```{r}
+cor_matrix <- function(X){
+  for(i in 1:ncol(X)){
+    if(is.numeric(X[,i])){
+      print(X %>%
+      ggplot(aes(x=X[,i], y=SpotifyDataset.Popularity)) + geom_point() + geom_smooth(method="lm") + xlab(names(X)[i]) + ylab("Popularity"))
+    }
+  }
+}
+cor_matrix(PCASpotify)
+```
 
 
 
