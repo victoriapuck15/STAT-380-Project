@@ -13,10 +13,89 @@ library(ISLR2)
 library(caret)
 library(glmnet)
 library(leaps)
+
+
+
+
+beta0 <- 1
+beta1 <- 10
+sigma <- 40
+n <- 100
+x <- rnorm(n,50,5)
+y <- rnorm(n,beta0 + beta1*x, sigma)
+plot(x,y, pch = 16, col = 4)
+
+
+fit <- lm(y ~ x)
+resid(fit)
+b <- coef(fit)
+resi <- y - (b[1] + b[2] * x)
+resi
+resid(fit$coefficients)^2
 ```
 
 
-Dancebility Regression:
+**Krish Section**
+
+
+```{r}
+# Example for SLR with Danceability, Energy, Valence
+slr_model_Danceability <- lm(Popularity ~ Danceability, data = SpotifyDataset)
+slr_model_Valence <- lm(Popularity ~ Valence, data = SpotifyDataset)
+slr_model_Loudness <- lm(Popularity ~ Loudness, data = SpotifyDataset)
+slr_model_Liveness <- lm(Popularity ~ Liveness, data = SpotifyDataset)
+slr_model_Time.Signature <- lm(Popularity ~ Time.Signature, data = SpotifyDataset)
+#slr_model_Genres <- glm(Popularity ~ Artist.Genres, data = SpotifyDataset)
+# Example for MLR with multiple variables
+mlr_model <- lm(Popularity ~ Danceability + Loudness + Valence + Liveness + Time.Signature, data = SpotifyDataset)
+
+summary(slr_model_Danceability)
+summary(slr_model_Valence)
+summary(slr_model_Loudness)
+summary(slr_model_Liveness)
+summary(slr_model_Time.Signature)
+#summary(slr_model_Genres)
+summary(mlr_model)
+plot(slr_model_Danceability)
+plot(slr_model_Valence)
+plot(slr_model_Loudness)
+plot(slr_model_Liveness)
+plot(slr_model_Time.Signature)
+plot(mlr_model)
+
+# R-squared and Adjusted R-squared
+cat("R-squared:", summary(mlr_model)$r.squared, "\n")
+cat("Adjusted R-squared:", summary(mlr_model)$adj.r.squared, "\n")
+
+# F-statistic
+cat("F-statistic:", summary(mlr_model)$fstatistic[1], "\n")
+cat("p-value:", pf(summary(mlr_model)$fstatistic[1], summary(mlr_model)$fstatistic[2], summary(mlr_model)$fstatistic[3], lower.tail = FALSE), "\n")
+
+# Assuming SpotifyDataset is your dataset
+correlation_matrix <- cor(SpotifyDataset[, c("Danceability", "Energy", "Valence", "Loudness", "Liveness", "Tempo", "Time.Signature", "Popularity")])
+
+# Print the correlation matrix
+print(correlation_matrix)
+
+# Install and load reshape2 package
+install.packages("reshape2")
+library(reshape2)
+
+# Assuming SpotifyDataset is your dataset
+correlation_matrix <- cor(SpotifyDataset[, c("Danceability", "Energy", "Valence", "Loudness", "Liveness", "Tempo", "Time.Signature", "Popularity")])
+
+# Print the correlation matrix
+print(correlation_matrix)
+
+# Plot a heatmap of the correlation matrix
+library(ggplot2)
+ggplot(data = melt(correlation_matrix), aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 10, hjust = 1))
+
+```
 
 
 ```{r}
@@ -28,7 +107,7 @@ mlr_2 <- lm(Popularity ~ Energy + Loudness + Liveness + Valence, data = SpotifyD
 
 
 summary(mlr_model1)
-
+avPlots(mlr_model1)
 
 
 
@@ -190,7 +269,7 @@ ValenceBootDist <- boot(data = SpotifyDataset$Valence, statistic = mean.function
 
 ValenceBootDist.graph <- data.frame(xbar=ValenceBootDist$t)
 ggplot(ValenceBootDist.graph, aes(x=xbar)) +
-  geom_histogram() + 
+  geom_histogram(fill = 'green') + 
   ggtitle('Estimated Sampling distribution of Valence' )
 ```
 We can conclude that majority of the music on Spotify envokes positive feelings 
