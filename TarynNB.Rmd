@@ -14,17 +14,66 @@ library(tidyverse)
 ```{r}
 SpotifyDataset <- read.csv(file = "SpotifyDataset.csv", stringsAsFactors = FALSE)
 
+colnames(SpotifyDataset)
+
 # Edit this to the columns we want to use
 SpotifyDataset <- SpotifyDataset%>%
-  select(Track.Name, Artist.Name.s., Popularity, Artist.Genres, Danceability, Energy, Key, Loudness, Mode, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+  select(Track.Name, Artist.Name.s., Popularity, Artist.Genres, Danceability, Energy, Key, Loudness, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+
+colnames(SpotifyDataset)
 
 SDNums <- SpotifyDataset%>%
-  select(Popularity,Danceability, Energy, Key, Loudness, Mode, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
-
+  select(Popularity,Danceability, Energy, Key, Loudness, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
 ```
 
+# By Genre
+```{r}
+split <- strsplit(as.character(SpotifyDataset$Artist.Genres), ",")
 
-# Summary Statistics 
+first <- sapply(split, function(x) trimws(x[1]))
+
+SpotifyDataset$Genre <- first
+
+sd1 <-sdMorePop <- SpotifyDataset%>%
+  group_by(Genre)%>%
+  summarise(count = n()) 
+
+sdMorePop <- SpotifyDataset%>%
+  group_by(Genre)%>%
+  summarise(count = n())%>%
+  filter(count >= 20)
+# bc 10000/502
+
+sdMorePop2 <- right_join(SpotifyDataset, sdMorePop)
+sdMorePop2 <- sdMorePop2%>%
+  select(Track.Name, Artist.Name.s., Genre, Popularity,Danceability, Energy, Key, Loudness, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+
+sdLessPop <- SpotifyDataset%>%
+  group_by(Genre)%>%
+  summarise(count = n())%>%
+  filter(count < 20)
+# bc 10000/502
+
+sdLessPop2 <- right_join(SpotifyDataset, sdLessPop)
+```
+
+##  Test
+5 + songs per genre and 50 + Median POp
+```{r}
+test <- SpotifyDataset%>%
+  group_by(Genre)%>%
+  summarise(count = n(), medianPop = median(Popularity))%>%
+  filter(medianPop > 50, count > 5)
+
+test1<- right_join(SpotifyDataset, test)
+
+test2 <- test1 %>%
+  select(Track.Name, Artist.Name.s., Genre, Popularity,Danceability, Energy, Key, Loudness, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo)
+
+test2
+```
+
+### summary stats
 ```{r}
 stats <- function(data, names) {
   for (variable in names) {
@@ -36,10 +85,159 @@ stats <- function(data, names) {
 }
 
 variables <- colnames(SDNums)
+stats(test2, variables)
+```
+
+### his
+```{r}
+histograms <- function(data, names) {
+  for (variable in names) {
+    variableData <- data[, variable, drop = FALSE]
+    
+    print(ggplot(
+      data = variableData,
+      mapping = aes(x = !!as.name(variable))) +
+        geom_histogram(color = "black", fill = "salmon") +
+        labs(title = paste("Boxplot of", variable),
+             x = variable, y = "Frequency") 
+    )
+  }
+}
+histograms(test2, variables)
+```
+
+
+### pairs/cors
+```{r}
+nums1 <- test2%>%
+  select(Popularity,Danceability, Energy, Key, Loudness)
+
+nums2 <-test2%>%
+  select(Popularity, Speechiness, Acousticness, Instrumentalness, )
+
+nums3 <- test2%>%
+  select(Popularity, Liveness, Valence, Tempo)
+
+#pairs(SDNums)
+pairs(nums1)
+pairs(nums2)
+pairs(nums3)
+
+cor(nums1, use = "complete.obs")
+cor(nums2, use = "complete.obs")
+cor(nums3, use = "complete.obs")
+```
+
+
+## Genre EDA for more popular songs
+### boxplots
+```{r}
+boxplots_by_genre <- function(data, genres, pop) {
+  unique <- unique(data[[genres]])
+  
+  for (genre in unique) {
+    genre_data <- data[data[[genres]] == genre, ]
+    
+    print(ggplot(
+      data = genre_data,
+      mapping = aes(x = 1, y = !!as.name(pop))
+    ) +
+      geom_boxplot() +
+      labs(title = paste("Boxplot of", pop, "for", genre),
+           x = genre, y = pop) +
+      theme(axis.title.x=element_blank(),
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank())
+    )
+  }
+}
+
+boxplots_by_genre(sdMorePop2, "Genre", "Popularity")
+```
+
+### histrograms
+```{r}
+histograms <- function(data, names) {
+  for (variable in names) {
+    variableData <- data[, variable, drop = FALSE]
+    
+    print(ggplot(
+      data = variableData,
+      mapping = aes(x = !!as.name(variable))) +
+        geom_histogram(color = "black", fill = "salmon") +
+        labs(title = paste("Boxplot of", variable),
+             x = variable, y = "Frequency") 
+    )
+  }
+}
+
+
+variables <- colnames(SDNums)
+histograms(sdMorePop2, variables)
+```
+### pairs/cor
+```{r}
+nums1 <- sdMorePop2%>%
+  select(Popularity,Danceability, Energy, Key, Loudness)
+
+nums2 <- sdMorePop2%>%
+  select(Popularity, Speechiness, Acousticness, Instrumentalness, )
+
+nums3 <- sdMorePop2%>%
+  select(Popularity, Liveness, Valence, Tempo)
+
+#pairs(SDNums)
+pairs(nums1)
+pairs(nums2)
+pairs(nums3)
+
+```
+
+
+### summary stats
+```{r}
+stats(sdMorePop2, variables)
+```
+
+
+## Genre EDA for more less pop songs
+### boxplots
+```{r}
+boxplots_by_genre <- function(data, genres, pop) {
+  unique <- unique(data[[genres]])
+  
+  for (genre in unique) {
+    genre_data <- data[data[[genres]] == genre, ]
+    
+    print(ggplot(
+      data = genre_data,
+      mapping = aes(x = 1, y = !!as.name(pop))
+    ) +
+      geom_boxplot() +
+      labs(title = paste("Boxplot of", pop, "for", genre),
+           x = genre, y = pop) +
+      theme(axis.title.x=element_blank(),
+            axis.text.x=element_blank(),
+            axis.ticks.x=element_blank())
+    )
+  }
+}
+
+boxplots_by_genre(sdLessPop2, "Genre", "Popularity")
+```
+
+### summary stats
+```{r}
+stats(sdLessPop2, variables)
+```
+
+# General Data
+## Summary Statistics 
+```{r}
 stats(SDNums, variables)
 ```
 
-# Boxplots 
+## Boxplots 
 ```{r}
 boxplots <- function(data, names) {
   for (variable in names) {
@@ -59,7 +257,7 @@ boxplots <- function(data, names) {
 boxplots(SDNums, variables)
 ```
 
-# Histograms
+## Histograms
 ```{r}
 histograms <- function(data, names) {
   for (variable in names) {
@@ -69,7 +267,7 @@ histograms <- function(data, names) {
       data = variableData,
       mapping = aes(x = !!as.name(variable))) +
         geom_histogram(color = "black", fill = "salmon") +
-        labs(title = paste("Boxplot of", variable),
+        labs(title = paste("Histogram of", variable),
              x = variable, y = "Frequency") 
     )
   }
@@ -94,12 +292,6 @@ SDNums%>%
 ```
 
 *Loudness:* Pretty symmetrical with center around -.72 - -.65.    
-*Mode:* Can not really havea  shape, there are more songs with mode 1 than mode 0. 
-```{r}
-SDNums%>%
-  group_by(Mode)%>%
-  summarise(count = n())
-```
 
 *Speechiness:* Heavily skewed right. With mean of 0.06 and median of 0.04.   
 *Acousticness:* Heavily skewed right. With mean of .21 and median of .096.   
@@ -109,7 +301,7 @@ SDNums%>%
 *Tempo:* Fairly symmetrical with center around 120-121.  
 
 
-# Scatterplot
+## Scatterplot
 Factors on the y axis, popularity on the x axis. 
 ```{r}
 scatter <- function(data, names) {
@@ -132,14 +324,14 @@ scatter(SDNums, variables)
 ```
 No clear patterns or correlation between popularity and a variable. 
 
-# Pairs/Cor
+## Pairs/Cor
 Had to split it up into 3 because it was too small. All have population though
 ```{r}
 nums1 <- SpotifyDataset%>%
   select(Popularity,Danceability, Energy, Key, Loudness)
 
 nums2 <- SpotifyDataset%>%
-  select(Popularity,  Mode, Speechiness, Acousticness, Instrumentalness, )
+  select(Popularity, Speechiness, Acousticness, Instrumentalness, )
 
 nums3 <- SpotifyDataset%>%
   select(Popularity, Liveness, Valence, Tempo)
@@ -148,5 +340,7 @@ nums3 <- SpotifyDataset%>%
 pairs(nums1)
 pairs(nums2)
 pairs(nums3)
+
+cor(SDNums, use = "complete.obs")
 ```
 Popularity does not really have a pattern with any variable. The only variables with a slight linear pattern are energy and loudness. Could be more but they are split up. 
