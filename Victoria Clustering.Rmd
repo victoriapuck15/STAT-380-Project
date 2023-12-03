@@ -1,0 +1,299 @@
+---
+title: "clustering"
+author: "Victoria Puck-Karam"
+date: "2023-12-01"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(mdsr)
+library(mvtnorm)
+library(factoextra)
+library(cluster)
+library(mice)
+```
+
+```{r}
+SpotifyDataset <- read_csv("~/Downloads/SpotifyDataset.csv")
+colnames(SpotifyDataset)
+
+```
+
+
+
+```{r}
+selected_columns <- c(
+  "Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness" ,"Time Signature"  
+)
+SpotifyDataset <- SpotifyDataset[, selected_columns]
+SpotifyDataset
+```
+```{r}
+SpotifyDataset <- na.omit(SpotifyDataset)
+```
+
+
+```{r}
+pca_result <- prcomp(SpotifyDataset, center = TRUE, scale. = TRUE)
+summary(pca_result)
+pca_result <- prcomp(newdata, center = TRUE, scale. = TRUE)
+summary(pca_result)
+pve <- get_eig(pca_result)
+pve
+```
+
+```{r}
+scaled_data <- as.data.frame(scale(SpotifyDataset))
+
+k <- 3
+kmeans_result <- kmeans(scaled_data, centers = k)
+scaled_data$cluster <- kmeans_result$cluster
+
+print(kmeans_result$centers)
+
+plot(scaled_data[, c("Danceability","Popularity")], col = kmeans_result$cluster, main = "K-means Clustering")
+points(kmeans_result$centers[, c("Danceability","Popularity")], col = 1:k, pch = 8, cex = 2)
+```
+
+```{r}
+k <- 3
+kmeans_result <- kmeans(SpotifyDataset, centers = k)
+SpotifyDataset$cluster <- kmeans_result$cluster
+
+print(kmeans_result$centers)
+
+plot(SpotifyDataset[, c("Liveness","Popularity")], col = kmeans_result$cluster, main = "K-means Clustering")
+points(kmeans_result$centers[, c("Liveness","Popularity")], col = 1:k, pch = 8, cex = 3)
+```
+
+```{r}
+
+wss <- numeric(10)
+
+for (i in 1:10) {
+  kmeans_result <- kmeans(SpotifyDataset, centers = i)
+  wss[i] <- sum(kmeans_result$withinss)
+}
+
+# Plotting the elbow curve
+plot(1:10, wss, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of Clusters (k)", ylab = "Within-cluster Sum of Squares")
+
+```
+```{r}
+
+distance <- get_dist(SpotifyDataset, method = 'euclidean')
+image(as.matrix(distance), main = "Euclidean distance")
+
+```
+
+```{r}
+features <- SpotifyDataset[, c("Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness", "Time Signature")]
+
+# Standardize the features
+scaled_features <- scale(features)
+
+# Initialize an empty vector to store silhouette scores
+silhouette_scores <- numeric(6)  # Assuming you want to loop through k=1 to k=6
+
+# Loop through different values of k
+for (k in 2:6) {
+  # Perform k-means clustering
+  kmeans_model <- kmeans(scaled_features, centers = k, nstart = 10)
+  
+  # Calculate the distance matrix
+  distance <- get_dist(scaled_features, method = "euclidean")
+  
+  # Calculate silhouette scores
+  sil <- silhouette(x = kmeans_model$cluster, dist = distance)
+    print(paste("Number of clusters (k):", k))
+  print(summary(sil))
+  
+  
+  
+}
+
+# Plot the silhouette scores
+plot(1:6, silhouette_scores, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of Clusters (k)", ylab = "Silhouette Score",
+     main = "Silhouette Scores for Different Numbers of Clusters")
+```
+```{r}
+features <- SpotifyDataset[, c("Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness", "Time Signature")]
+
+# Standardize the features
+scaled_features <- scale(features)
+
+sil_widths <- numeric()
+
+for (k in 2:6) {
+  kmeans_model <- kmeans(scaled_features, centers = k, nstart = 10)
+  
+  distance <- get_dist(scaled_features, method = "euclidean")
+  
+  sil <- silhouette(x = kmeans_model$cluster, dist = distance)
+  
+  avg_sil_width <- summary(sil)$avg.width
+  
+  sil_widths <- c(sil_widths, avg_sil_width)
+}
+
+# Plot the silhouette widths
+plot(2:6, sil_widths, type = "b", pch = 19, xlab = "Number of Clusters (k)", ylab = "Average Silhouette Width", main = "Silhouette Analysis")
+
+```
+
+```{r}
+features <- SpotifyDataset[, c("Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness", "Time Signature")]
+
+# Standardize the features
+scaled_features <- scale(features)
+kmeans_model <- kmeans(scaled_features, centers = 3, nstart = 10)
+sil <- silhouette(x = kmeans_model$cluster, dist = distance)
+fviz_silhouette(sil)
+```
+
+```{r}
+pop_rows <- SpotifyDataset %>%
+  filter(grepl("pop", `Artist Genres`))
+pop_rows
+```
+```{r}
+selected_columns <- c(
+  "Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness" ,"Time Signature"  
+)
+pop_dataset <- pop_rows[, selected_columns]
+pop_dataset
+```
+```{r}
+scaled_data <- as.data.frame(scale(pop_dataset))
+
+k <- 2
+kmeans_result <- kmeans(scaled_data, centers = k)
+scaled_data$cluster <- kmeans_result$cluster
+
+print(kmeans_result$centers)
+
+plot(scaled_data[, c("Popularity","Acousticness")], col = kmeans_result$cluster, main = "K-means Clustering")
+points(kmeans_result$centers[, c("Popularity","Acousticness")], col = 1:k, pch = 8, cex =8 )
+```
+```{r}
+
+features <- pop_dataset[, c("Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness", "Time Signature")]
+
+# Standardize the features
+scaled_features <- scale(features)
+
+sil_widths <- numeric()
+
+for (k in 2:6) {
+  kmeans_model <- kmeans(scaled_features, centers = k, nstart = 10)
+  
+  distance <- get_dist(scaled_features, method = "euclidean")
+  
+  sil <- silhouette(x = kmeans_model$cluster, dist = distance)
+  
+  avg_sil_width <- summary(sil)$avg.width
+  
+  sil_widths <- c(sil_widths, avg_sil_width)
+}
+
+# Plot the silhouette widths
+plot(2:6, sil_widths, type = "b", pch = 19, xlab = "Number of Clusters (k)", ylab = "Average Silhouette Width", main = "Silhouette Analysis")
+
+```
+
+
+```{r}
+
+wss <- numeric(10)
+
+for (i in 1:10) {
+  kmeans_result <- kmeans(pop_dataset, centers = i)
+  wss[i] <- sum(kmeans_result$withinss)
+}
+
+# Plotting the elbow curve
+plot(1:10, wss, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of Clusters (k)", ylab = "Within-cluster Sum of Squares")
+
+```
+
+
+```{r}
+
+features <- pop_dataset[, c("Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness", "Time Signature")]
+
+# Standardize the features
+scaled_features <- scale(features)
+kmeans_model <- kmeans(scaled_features, centers = 3, nstart = 10)
+sil <- silhouette(x = kmeans_model$cluster, dist = distance)
+fviz_silhouette(sil)
+```
+
+
+```{r}
+# top songs dataset:
+topsongs <- SpotifyDataset %>%
+  filter(Popularity>75)
+
+selected_columns <- c(
+  "Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness" ,"Time Signature"  
+)
+topsongs <- topsongs[, selected_columns]
+topsongs
+
+```
+
+```{r}
+scaled_data <- as.data.frame(scale(pop_dataset))
+
+k <- 3
+kmeans_result <- kmeans(scaled_data, centers = k)
+scaled_data$cluster <- kmeans_result$cluster
+
+print(kmeans_result$centers)
+
+plot(scaled_data[, c("Popularity","Speechiness")], col = kmeans_result$cluster, main = "K-means Clustering")
+points(kmeans_result$centers[, c("Popularity","Speechiness")], col = 1:k, pch = 8, cex =5 )
+
+
+```
+
+
+```{r}
+selected_columns <- c(
+  "Track Duration (ms)", "Danceability", "Liveness", "Energy",
+  "Speechiness", "Valence", "Key", "Acousticness",
+  "Tempo", "Popularity", "Loudness", "Instrumentalness" ,"Time Signature"  
+)
+SpotifyDataset <- SpotifyDataset[, selected_columns]
+SpotifyDataset
+```
+
+```{r}
+correlation_matrix <- cor(SpotifyDataset, use = "pairwise.complete.obs")
+
+# Print the correlation matrix
+print(correlation_matrix)
+```
+
