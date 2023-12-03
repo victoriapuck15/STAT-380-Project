@@ -86,7 +86,35 @@ cor_matrix <- function(X){
   }
 }
 cor_matrix(PCASpotify)
+
+cor(PCASpotify)
 ```
+
+```{r}
+princomp %>%
+  fviz_pca_var(axes = c(1,4),
+             col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE
+             )
+```
+
+```{r}
+model <- lm(SpotifyDataset.Popularity ~ PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7, data = PCASpotify)
+summary(model)
+```
+
+```{r}
+library(leaps)
+regfit.full = regsubsets(SpotifyDataset.Popularity ~ ., data = PCASpotify,  nvmax = 7, method="exhaustive")
+summary(regfit.full)
+```
+
+```{r}
+model2 <- lm(SpotifyDataset.Popularity ~ PC4 + PC1 + PC6 + PC2 + PC3 + PC5, data=PCASpotify)
+summary(model2)
+```
+
 
 
 
